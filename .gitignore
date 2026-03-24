@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# API keys — no subir al repositorio
+src/Peliculas.config.js

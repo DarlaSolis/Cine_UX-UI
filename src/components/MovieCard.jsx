@@ -1,8 +1,18 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Favoritos from "./Favoritos"
 
-function MovieCard({ title, image, onVerDetalle, year, genre, sinopsis, onToggleFavorito, onComprar, esFavorito }) {
+// useNavigate reemplaza la prop onVerDetalle
+// navega a /pelicula/:id y pasa los datos por state para evitar un fetch extra
+function MovieCard({ title, image, year, genre, sinopsis, onToggleFavorito, onComprar, esFavorito, rating }) {
   const [hovered, setHovered] = useState(false)
+  const navigate = useNavigate()
+
+  const irADetalle = () => {
+    navigate(`/pelicula/${encodeURIComponent(title)}`, {
+      state: { pelicula: { title, image, year, genre, sinopsis, rating } }
+    })
+  }
 
   return (
     <div
@@ -20,7 +30,7 @@ function MovieCard({ title, image, onVerDetalle, year, genre, sinopsis, onToggle
     >
       {/* Imagen con overlay */}
       <div
-        onClick={onVerDetalle}
+        onClick={irADetalle}
         style={{ position: "relative", paddingTop: "148%", overflow: "hidden", cursor: "pointer", flexShrink: 0 }}
       >
         <img
@@ -43,23 +53,31 @@ function MovieCard({ title, image, onVerDetalle, year, genre, sinopsis, onToggle
           {genre && <span style={{ background: "rgba(249,178,26,0.9)", color: "#1a1200", padding: "3px 10px", borderRadius: "20px", fontSize: "0.72rem", fontWeight: "700", fontFamily: "'Montserrat', sans-serif", backdropFilter: "blur(4px)" }}>{genre}</span>}
         </div>
 
-        {/* Badge de favorito guardado — se muestra/oculta con el estado global */}
-        <div style={{
-          position: "absolute", top: "10px", right: "10px",
-          background: esFavorito ? "rgba(54,245,175,0.92)" : "rgba(0,0,0,0.45)",
-          borderRadius: "50%", width: "30px", height: "30px",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "0.9rem",
-          boxShadow: esFavorito ? "0 2px 10px rgba(54,245,175,0.5)" : "none",
-          border: esFavorito ? "none" : "1px solid rgba(255,255,255,0.15)",
-          backdropFilter: "blur(4px)",
-          transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-          transform: esFavorito ? "scale(1)" : "scale(0.85)",
-          opacity: esFavorito ? 1 : 0.5,
-          cursor: "pointer",
-          zIndex: 2
-        }}
+        {/* Rating TMDB */}
+        {rating && rating !== "—" && (
+          <div style={{ position:"absolute", top:"10px", left:"10px", background:"rgba(0,0,0,0.7)", backdropFilter:"blur(6px)", borderRadius:"8px", padding:"4px 8px", display:"flex", alignItems:"center", gap:"4px", zIndex:2 }}>
+            <span style={{ fontSize:"0.7rem" }}>⭐</span>
+            <span style={{ color:"#F9B21A", fontFamily:"'Montserrat',sans-serif", fontWeight:"800", fontSize:"0.75rem" }}>{rating}</span>
+          </div>
+        )}
+
+        {/* Badge favorito */}
+        <div
           onClick={e => { e.stopPropagation(); onToggleFavorito({ title, image, year, genre, sinopsis }) }}
+          style={{
+            position: "absolute", top: "10px", right: "10px",
+            background: esFavorito ? "rgba(54,245,175,0.92)" : "rgba(0,0,0,0.45)",
+            borderRadius: "50%", width: "30px", height: "30px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "0.9rem",
+            boxShadow: esFavorito ? "0 2px 10px rgba(54,245,175,0.5)" : "none",
+            border: esFavorito ? "none" : "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(4px)",
+            transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+            transform: esFavorito ? "scale(1)" : "scale(0.85)",
+            opacity: esFavorito ? 1 : 0.5,
+            cursor: "pointer", zIndex: 2
+          }}
         >
           {esFavorito ? "❤️" : "🤍"}
         </div>
@@ -68,18 +86,16 @@ function MovieCard({ title, image, onVerDetalle, year, genre, sinopsis, onToggle
       {/* Body */}
       <div style={{ padding: "14px 14px 16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
         <h3
-          onClick={onVerDetalle}
+          onClick={irADetalle}
           style={{ color: "white", fontFamily: "'Montserrat', sans-serif", fontWeight: "800", fontSize: "0.95rem", lineHeight: "1.3", margin: 0, cursor: "pointer" }}
         >{title}</h3>
 
-        {/* Sinopsis toggle + botón favorito — usa estado global */}
         <Favoritos
           pelicula={{ title, image, year, genre, sinopsis }}
           onToggleFavorito={onToggleFavorito}
           esFavorito={esFavorito}
         />
 
-        {/* Comprar */}
         <button
           onClick={onComprar}
           style={{
@@ -94,9 +110,9 @@ function MovieCard({ title, image, onVerDetalle, year, genre, sinopsis, onToggle
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none" }}
         >🎫 Comprar boletos</button>
 
-        {/* Ver detalle */}
+        {/* Ver detalle — ahora usa irADetalle() con useNavigate */}
         <button
-          onClick={onVerDetalle}
+          onClick={irADetalle}
           style={{
             width: "100%", padding: "9px", borderRadius: "10px",
             background: "transparent", color: "rgba(255,255,255,0.5)",
